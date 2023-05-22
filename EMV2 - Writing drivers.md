@@ -103,6 +103,8 @@ You must input which commands the software should use here. Only a small number 
 
 If you need to use a \" (quotation marks) then make sure to precede it with a \\ (backslash); for example: `INST:SEL "SA"` should be written as `INST:SEL \"SA\"`
 
+Commands are not case-sensitive, and you may use the longer form instead if you wish, where applicable for your spectrum analyzer. For example, instead of `FREQ:CENT` you may write `FREQuency:CENTer` or `Frequency:Center`.
+
 Here is the template:
 
 ```
