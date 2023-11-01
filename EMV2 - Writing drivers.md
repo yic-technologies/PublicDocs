@@ -6,9 +6,7 @@ This page describes how to create a .json driver for use in EMViewer 2. Please f
 
 ### 1. Prerequisites
 
-Only spectrum analyzers controllable with SCPI commands through a VISA vendor can have drivers added through this method.
-
-Furthermore, the device should be SCPI compliant, as in it can use the *RST and *WAI commands.
+Only spectrum analyzers controllable with SCPI commands through a VISA vendor can have drivers added through this method. Furthermore, the device should be SCPI compliant, as in it can use *IDN?, *RST, *WAI, etc. Currently, the only known case of non-compliance is the RIGOL RSA5000 series.
 
 **Example:** if you see the spectrum analyzer in NI-MAX, RIGOL UltraSigma or Keysight Connection Expert, then you can write a JSON instruction set for it. Analyzers that require a separate software such as the SignalHound BB60 have to be hardcoded by YIC Technologies.
 
