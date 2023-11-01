@@ -1,158 +1,159 @@
 # EMViewer 2 - Writing drivers
 
+**This guide is only accurate from EMViewer version 12.6.0.** Please make sure you have the latest update!
+
 This page describes how to create a .json driver for use in EMViewer 2. Please follow this guide carefully when creating drivers.
 
 ### 1. Prerequisites
 
 Only spectrum analyzers controllable with SCPI commands through a VISA vendor can have drivers added through this method.
 
-**Example:** if you see the spectrum analyzer in NI-MAX, RIGOL UltraSigma or Keysight Connection Expert, then you can write a JSON driver for it. Analyzers that require a separate software such as the SignalHound BB60 have to be hardcoded by YIC Technologies.
+Furthermore, the device should be SCPI compliant, as in it can use the *RST and *WAI commands.
+
+**Example:** if you see the spectrum analyzer in NI-MAX, RIGOL UltraSigma or Keysight Connection Expert, then you can write a JSON instruction set for it. Analyzers that require a separate software such as the SignalHound BB60 have to be hardcoded by YIC Technologies.
 
 ### 2. Create your JSON file
 
-Create a file called `xxx.json`. You may name this file whatever you want as long as it does not conflict with another file. Usually we name them after the device (eg. `DSA875.json`).
+Create a blank text file and change the extension to `.json`, for example, `MySpectrumAnalyzer.json`. You may name this file whatever you want as long as it does not conflict with another file. We recommend to use `DriverAuthor-AnalyzerFamily.json` (eg. `YICTechnologies-KeysightFieldFox.json`).
 
-Open the file with a text editor such as Notepad.
+Open the file with a text editor such as Notepad, Notepad++, Visual Studio Code, etc.
 
 Copy the following template into the file you have created.
 
 ```
 {
 	"Name" : "DRIVER NAME",
+	"Author" : "AUTHOR NAME",
+	"Format" : 1,
 	"Requires" : {
-		"MatchManufacturer" : "YIC Technologies",
-		"MatchName" : "^SA[0-9]{3}"
+		"MatchManufacturer" : "MANUFACTURER NAME HERE",
+		"MatchName" : "ANALYZER NAME HERE"
 	},
 	"Commands" : {
-		"ModeSA" : "INST:SEL \"SA\"",
-		"FrequencySpan" : "FREQ:SPAN",
-		"FrequencyCenter" : "FREQ:CENT",
 		"FrequencyStart" : "FREQ:STAR",
 		"FrequencyStop" : "FREQ:STOP",
 		"Bandwidth" : "BAND",
-		"BandwidthAuto" : "BAND:AUTO",
 		"Single" : "INIT",
 		"Continuous" : "INIT:CONT",
-		"PowerUnit" : "AMPL:UNIT",
-		"PreampEnable" : "POW:GAIN",
-		"AttenuationAuto" : "POW:ATT:AUTO",
-		"AttenuationSet" : "POW:ATT",
 		"FormatByteOrder" : "FORM:BORD NORM",
 		"FormatBinary" : "FORM REAL,32",
 		"SweepPoints" : "SWE:POIN",
-		"Fetch" : "TRACE:DATA?",
-		"DisplayEnable" : "DISP:ENAB",
-		"AudioVolume" : "SYST:AUD:VOL"
+		"Fetch" : "TRACE:DATA?"
 	}
 }
 ```
 
-### 3. Requires block
+In the following sections we will describe the purpose for each block.
 
-You must now set each attribute to the relevant value for your spectrum analyzer.
+### 3. `"Name"`, `"Author"` and `"Version"`
+
+These are used to describe the command set file itself.
+
+Let's assume I'm writing a command set for the RIGOL DSA800 series spectrum analyzer. Put a suitable name, and put your own name (or company) in the author string.
 
 ```
-	"Name" : "DRIVER NAME",
+	"Name" : "RIGOL DSA800",
+	"Author" : "Y.I.C. Technologies",
+	"Format" : 1,
 ```
 
-Replace the DRIVER NAME with a name of your choice. For example, if our spectrum analyzers started with SA with 3 numbers after that (SA365, SA009, etc), we may name the driver: **YIC Technologies - SA###**.
+`Format` tells EMViewer how commands are structured. In future versions, we could require different parameters, so to stay backwards compatible make sure your format version matches the template's.
 
+### 4. `"Requires"`
+
+The requires block is how EMViewer determines which command set should be used for a specific analyzer. It uses **regex** to match the spectrum analyzer's name and manufacturer.
+
+To get an SA's name and manufacturer, it uses an `*IDN?` command. This returns a comma-separated string:
+
+`Manufacturer,Name,Serial Number,Firmware Ver`
+
+For example, the RIGOL DSA875 may return:
+
+```
+-> *IDN?
+<- Rigol Technologies,DSA875,DSA8E163700013,00.01.06.00.03
+```
+
+Only the **manufacturer** and **name** are important for this section.
+
+For the `"MatchManufacturer"` and `"MatchName"` fields, you have two options.
+
+1. **Exact Match**
+
+Write the exact manufacturer and name:
 ```
     "Requires" : {
-		"MatchManufacturer" : "YIC Technologies",
-		"MatchName" : "^SA[0-9]{3}"
+		"MatchManufacturer" : "Rigol Technologies",
+		"MatchName" : "DSA875"
 	},
 ```
 
-The `"Requires"` table is how EMViewer determines which driver to use. It will query the spectrum analyzer's manufacturer and name using an `*IDN?` command, and compare those to the driver.
+2. **General Match**
 
-For example, let's say we have a spectrum analyzer, use the `*IDN?` command and receive:
-
-```
-YIC Technologies,SA193,8873197649,v0.0
-```
-
-The software would interpret this as:
-* **Manufacturer:** YIC Technologies
-* **Name:** SA193
-
-The `"MatchManufacturer"` and `"MatchName"` attributes must contain patterns that match the analyzer we want to use. We may use the manufacturer and name exactly:
-
+or write a regex expression that can identify an entire family of spectrum analyzers. The DSA800 family also contains the DSA832E-TG, the DSA815, etc. So we can write:
 ```
     "Requires" : {
-		"MatchManufacturer" : "YIC Technologies",
-		"MatchName" : "SA193"
-	},
-```
-> When only one spectrum analyzer exists using this driver
-
-Or more general:
-
-```
-    "Requires" : {
-		"MatchManufacturer" : "YIC Technologies",
-		"MatchName" : "^SA[0-9]{3}"
+		"MatchManufacturer" : "Rigol Technologies",
+		"MatchName" : "DSA8[0-9]{2}E?(-TG)?"
 	},
 ```
 
-[Click here](https://regex101.com/r/7VRd2J/1) to see the example online.
+* `DSA8`: matches "DSA8" exactly
+* `[0-9]{2}`: matches any two digits
+* `E?`: matches "E" (optional)
+* `(-TG)?`: matches "-TG" (optional) 
 
-### 4. Commands block
+You can view this example [live here](https://regex101.com/r/CAegms/1).
 
-You must input which commands the software should use here. Only a small number of commands are required, however the software will make use of some additional commands if they are available.
+### 5. `"Commands"`
 
-If you need to use a \" (quotation marks) then make sure to precede it with a \\ (backslash); for example: `INST:SEL "SA"` should be written as `INST:SEL \"SA\"`
+You must input which commands the software should use here. Only a small number of commands are required for spectrum analysis, however the software will make use of some additional commands if they are available.
 
-Commands are not case-sensitive, and you may use the longer form instead if you wish, where applicable for your spectrum analyzer. For example, instead of `FREQ:CENT` you may write `FREQuency:CENTer` or `Frequency:Center`.
+If you need to use a \" symbol (quotation marks) then make sure to precede it with a \\ (backslash); for example: `INST:SEL "SA"` should be written as `INST:SEL \"SA\"`
 
-Here is the template:
+Commands are not case-sensitive, and you may use short form or long form SCPI commands, where applicable for your spectrum analyzer. For example, instead of `FREQ:CENT` you may write `FREQuency:CENTer` or `Frequency:Center`.
+
+Below are the commands from our template. These are the minimum required commands.
 
 ```
 	"Commands" : {
-		"ModeSA" : "INST:SEL \"SA\"",
-		"FrequencySpan" : "FREQ:SPAN",
-		"FrequencyCenter" : "FREQ:CENT",
 		"FrequencyStart" : "FREQ:STAR",
 		"FrequencyStop" : "FREQ:STOP",
 		"Bandwidth" : "BAND",
-		"BandwidthAuto" : "BAND:AUTO",
 		"Single" : "INIT",
 		"Continuous" : "INIT:CONT",
-		"PowerUnit" : "AMPL:UNIT",
-		"PreampEnable" : "POW:GAIN",
-		"AttenuationAuto" : "POW:ATT:AUTO",
-		"AttenuationSet" : "POW:ATT",
 		"FormatByteOrder" : "FORM:BORD NORM",
 		"FormatBinary" : "FORM REAL,32",
 		"SweepPoints" : "SWE:POIN",
-		"Fetch" : "TRACE:DATA?",
-		"DisplayEnable" : "DISP:ENAB",
-		"AudioVolume" : "SYST:AUD:VOL"
+		"Fetch" : "TRACE:DATA?"
 	}
 ```
 
-The following table describes the usage of each command.
+The following table describes the usage of each command. You must implement the command if the required column is Yes. EMViewer will add parameters to each command when it uses them, so make sure to match the format of the **Example** column.
 
-|Key|Required|Example|
-|-|-|-|
-|ModeSA|If the analyzer can be in another mode|INST:SEL \"SA\"|
-|FrequencySpan|Yes|FREQ:SPAN|
-|FrequencyCenter|Yes|FREQ:CENT|
-|FrequencyStart|As an alternative to FrequencySpan|FREQ:STAR|
-|FrequencyStop|As an alternative to FrequencySpan|FREQ:STOP|
-|Bandwidth|Yes|BAND|
-|BandwidthAuto|No|BAND:AUTO|
-|Single|Yes|INIT|
-|Continuous|No|INIT:CONT|
-|PowerUnit|Yes|AMPL:UNIT|
-|PreampEnable|Yes|POW:GAIN|
-|AttenuationAuto|No|POW:ATT:AUTO|
-|AttenuationSet|Yes|POW:ATT|
-|FormatByteOrder|Yes|FORM:BORD NORM|
-|FormatBinary|Yes|FORM REAL,32|
-|SweepPoints|Yes|SWE:POIN|
-|Fetch|Yes|TRACE:DATA?|
-|DisplayEnable|If the SA has a screen. Disabling the display often increases the speed of the analyzer|DISP:ENAB|
-|AudioVolume|No|SYST:AUD:VOL|
+|Key|Required|Usage|Example|
+|-|-|-|-|
+|SystemError|Yes|Queries the SA if a command failed to run. Useful for debugging. EMViewer appends `?` to this command.|SYST:ERR|
+|ModeSA|No|Changes the device to spectrum analyzer mode. This is important if your device may not be in SA mode when a scan is run.|INST:SEL \"SA\"|
+|FrequencyStart|Yes|Sets the start frequency for sweeps.|FREQ:STAR|
+|FrequencyStop|Yes|Sets the last frequency for sweeps.|FREQ:STOP|
+|Bandwidth|Yes|Sets the RBW.|BAND|
+|BandwidthAuto|No|Sets the RBW to be automatic which some SAs can do.|BAND:AUTO|
+|Single|Yes|Initialises a single sweep.|INIT|
+|Continuous|No|Sets the SA to run sweeps continuously. This is used on scan end.|INIT:CONT|
+|PowerUnit|Yes|Sets the unit of power to dBm.|AMPL:UNIT|
+|PreampEnable|Yes|Enables or disables the pre-amplifier. EMViewer inserts a 0 or 1 after this command.|POW:GAIN|
+|AttenuationAuto|No|Sets the attenuation to be automatic.|POW:ATT:AUTO|
+|AttenuationSet|Yes|Sets the attenuation value. EMViewer appends a 0, 10, 20 or 30.|POW:ATT|
+|FormatByteOrder|Yes|Tells the spectrum analyzer to output in little endian (LSB). This is **very** important! If the byte order is wrong your results will be extremely out of scale.|FORM:BORD NORM|
+|FormatBinary|Yes|Tells the spectrum analyzer to output in binary instead of ASCII text.|FORM REAL,32|
+|SweepPoints|Yes|Sets or reads the number of sweep points to use.|SWE:POIN|
+|Fetch|Yes|Retrieves the data from the SA.|TRACE:DATA?|
+|DisplayEnable|No|If the SA has a screen. Disabling the display often increases the speed of the analyzer.|DISP:ENAB|
+|AudioVolume|No|This is used to mute the system if beeps are frequently emitted.|SYST:AUD:VOL|
 
-The software will use the commands in the driver to control the analyzer. If there is a missing feature (for example: coupling control) please contact YIC Technologies so we can add the feature.
+Any features not seen here will not be changed by EMViewer (unless a `*RST` command is used). If you would like a feature to be added, contact Y.I.C. Technologies.
+
+Finally, save your file to `%appdata%/YIC Technologies/EMViewer2/analyzers/{YourFile}.json`.
+
+If you need support, contact [support@yictechnologies.com](support@yictechnologies.com).
