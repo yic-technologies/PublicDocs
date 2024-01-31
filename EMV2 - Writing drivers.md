@@ -115,8 +115,8 @@ Below are the commands from our template. These are the minimum required command
 
 ```
 	"Commands" : {
-		"FrequencyStart" : "FREQ:STAR",
-		"FrequencyStop" : "FREQ:STOP",
+		"FrequencyCenter" : "FREQ:CENT",
+		"FrequencySpan" : "FREQ:SPAN",
 		"Bandwidth" : "BAND",
 		"Single" : "INIT",
 		"Continuous" : "INIT:CONT",
