@@ -129,21 +129,21 @@ Below are the commands from our template. These are the minimum required command
 
 The following table describes the usage of each command. You must implement the command if the required column is Yes. EMViewer will add parameters to each command when it uses them, so make sure to match the format of the **Example** column.
 
+*Last updated 31/01/2024, make sure to update to version 12.7.5*
+
 |Key|Required|Usage|Example|
 |-|-|-|-|
 |SystemError|Yes|Queries the SA if a command failed to run. Useful for debugging. EMViewer appends `?` to this command.|SYST:ERR|
 |ModeSA|No|Changes the device to spectrum analyzer mode. This is important if your device may not be in SA mode when a scan is run.|INST:SEL \"SA\"|
-|FrequencyStart|Yes|Sets the start frequency for sweeps.|FREQ:STAR|
-|FrequencyStop|Yes|Sets the last frequency for sweeps.|FREQ:STOP|
+|FrequencyCenter|Yes|Sets the center frequency for sweeps.|FREQ:CENT|
+|FrequencySpan|Yes|Sets the span for sweeps.|FREQ:SPAN|
 |Bandwidth|Yes|Sets the RBW.|BAND|
-|BandwidthAuto|No|Sets the RBW to be automatic which some SAs can do.|BAND:AUTO|
 |Single|Yes|Initialises a single sweep.|INIT|
 |Continuous|No|Sets the SA to run sweeps continuously. This is used on scan end.|INIT:CONT|
-|PowerUnit|Yes|Sets the unit of power to dBm.|AMPL:UNIT|
-|PreampEnable|Yes|Enables or disables the pre-amplifier. EMViewer inserts a 0 or 1 after this command.|POW:GAIN|
-|AttenuationAuto|No|Sets the attenuation to be automatic.|POW:ATT:AUTO|
+|PowerUnit|No|Sets the unit of power to dBm.|AMPL:UNIT|
+|PreampEnable|No|Enables or disables the pre-amplifier. EMViewer inserts a 0 or 1 after this command.|POW:GAIN|
 |AttenuationSet|Yes|Sets the attenuation value. EMViewer appends a 0, 10, 20 or 30.|POW:ATT|
-|FormatByteOrder|Yes|Tells the spectrum analyzer to output in little endian (LSB). This is **very** important! If the byte order is wrong your results will be extremely out of scale.|FORM:BORD NORM|
+|FormatByteOrder|No|Tells the spectrum analyzer to output in little endian (LSB). This is **very** important! If the byte order is wrong your results will be extremely out of scale.|FORM:BORD NORM|
 |FormatBinary|Yes|Tells the spectrum analyzer to output in binary instead of ASCII text.|FORM REAL,32|
 |SweepPoints|Yes|Sets or reads the number of sweep points to use.|SWE:POIN|
 |Fetch|Yes|Retrieves the data from the SA.|TRACE:DATA?|
