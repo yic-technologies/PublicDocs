@@ -4,6 +4,8 @@
 
 This page describes how to create a .json driver for use in EMViewer 2. Please follow this guide carefully when creating drivers.
 
+Any changes made to JSON files will not be recognised by the software until it is restarted.
+
 ### 1. Prerequisites
 
 Only spectrum analyzers controllable with SCPI commands through a VISA vendor can have drivers added through this method. Furthermore, the device should be SCPI compliant, as in it can use *IDN?, *RST, *WAI, etc. Currently, the only known case of non-compliance is the RIGOL RSA5000 series.
