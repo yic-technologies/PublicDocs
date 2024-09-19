@@ -1,6 +1,8 @@
+**This guide no longer applies starting from 13.0.0, where drivers are made automatically by the software.**
+
 # EMViewer 2 - Writing drivers
 
-**This guide is only accurate from EMViewer version 12.6.0.** Please make sure you have the latest update!
+**This guide is only accurate from EMViewer version 12.6.0 up to (excluding) 13.0.0.** Please make sure you have the latest update!
 
 This page describes how to create a .json driver for use in EMViewer 2. Please follow this guide carefully when creating drivers.
 
